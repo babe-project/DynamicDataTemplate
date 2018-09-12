@@ -19,9 +19,20 @@ exp.customize = function () {
     ];
 
     // prepare information about trials (procedure)
-    // randomize main trial order, but keep practice trial order fixed
-    this.trial_info.main_trials = _.shuffle(main_trials.concat(practice_trials));
-    this.trial_info.practice_trials = practice_trials;
+    // Use ES6 Promise
+    var practice_trial_promise = fetch('https://babe-demo.herokuapp.com/api/retrieve_custom_record/2');
+    var main_trial_promise = fetch('https://babe-demo.herokuapp.com/api/retrieve_custom_record/3');
+
+    Promise
+        .all([practice_trial_promise, main_trial_promise])
+        .then(responses => {
+            return Promise.all(responses.map(res => res.json()))
+        })
+        .then(([practice_trials, main_trials])=> {
+            this.trial_info.practice_trials = practice_trials;
+            // randomize main trial order, but keep practice trial order fixed
+            this.trial_info.main_trials = _.shuffle(main_trials.concat(practice_trials));
+        })
 
     // adds progress bars to the views listed
     // view's name is the same as object's name

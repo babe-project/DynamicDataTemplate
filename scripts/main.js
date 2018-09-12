@@ -20,12 +20,12 @@ exp.init = function () {
     this.trial_data = [];
     this.trial_info = {};
 
+    // call user-defined costumization function
+    this.customize();
+
     // record current date and time
     this.global_data.startDate = Date();
     this.global_data.startTime = Date.now();
-
-    // call user-defined costumization function
-    this.customize();
 
     // flatten views_seq after possible 'loop' insertions
     this.views_seq = _.flatten(this.views_seq);
