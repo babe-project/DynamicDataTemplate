@@ -165,8 +165,8 @@ button:focus {
 /* slider response */
 
 /* slider  ---o--- 
-	--- track
-	 o  thumb
+    --- track
+     o  thumb
 */
 
 /* slider track styles */
@@ -311,11 +311,11 @@ input[type="range"]:focus::-moz-range-thumb {
     text-decoration: none;
 }
 
-.debug-results {
+.debug-results, .prev-results {
     overflow-x: scroll;
 }
 
-#debugresults {
+.resultstable {
     border-collapse: collapse;
     font-family: "Lato", "Noto Sans", sans-serif;
     font-size: 15px;
@@ -323,21 +323,21 @@ input[type="range"]:focus::-moz-range-thumb {
     width: 100%;
 }
 
-#debugresults td,
-#debugresults th {
+.resultstable td,
+.resultstable th {
     border: 1px solid #ddd;
     padding: 8px;
 }
 
-#debugresults tr:nth-child(even) {
+.resultstable tr:nth-child(even) {
     background-color: #f2f2f2;
 }
 
-#debugresults tr:hover {
+.resultstable tr:hover {
     background-color: #ddd;
 }
 
-#debugresults th {
+.resultstable th {
     background-color: #5187BA;
     color: white;
     padding: 15px 8px;
