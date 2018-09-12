@@ -1,129 +1,58 @@
-# Minimal example of an online experiment
+# Template for data-related interactions with the server
 
 ## Cloning and running the experiment
 
 ```
 # clone the repo, e.g.:
-git clone https://github.com/babe-project/MinimalTemplate
+git clone https://github.com/babe-project/DynamicDataTemplate
 
-# go to 'MinimalTemplate'
+# go to 'DynamicDataTemplate'
 
 # open 'index.html' in the browser to see the experiment
 ```
 
 ## Documentation
 
-Extensive documentation is provided on the [_babe site](http://babe-project.github.io/babe_site/index.html).
+This template focuses on aspects related to dynamically fetching data from the server during an experiment and manually storing data records on the server for later retrieval. It is based on the [MinimalTemplate](https://github.com/babe-project/MinimalTemplate).
 
-## File Organisation
+Extensive documentation for the project is provided on the [_babe site](http://babe-project.github.io/babe_site/index.html).
 
-+ `index.html` - starting point; to be loaded in the browser; general structure; user must edit this
+The following sections highlight the aspects of this template which are related to data interaction with the server.
 
-+ `views`/     - file with a collection of views (= block / chunk of related content) of the experiment
-	+ `view.js`            - definition of how individual trials look, which data to collect etc.; main work happens here
+### Manually uploading data to the server
 
-+ `scripts`/   - files for main functionality
-	+ `experiment.js`       - initializes the experiment (trial structure, input data etc.); user must customize this
-	+ `main.js`             - main functionality to run experiment; usually user will not edit this
-    + `helpers.js`          - helper functions specific to each particular experiment; user might edit this
-	+ `submit_to_server.js` - functions to process, send or store data; user will almost never edit this
+In this example, the data for trials are stored on and fetched from the server instead of loaded locally, as is the case in MinimalTemplate.
 
-+ `config`/    - file(s) with user-supplied information
-	+ `config_deploy.js`    - information about how to deploy (=run, collect data for) the experiment
+- First, the data files `trial_info/main_trials.csv` and `trial_info/practice_trials.json` are uploaded to the server via the [web interface for managing custom records](https://babe-demo.herokuapp.com/custom_records) (click on the "New" button in the interface).
+- The data can then be retrieved in JSON format from their respective API endpoints: https://babe-demo.herokuapp.com/api/retrieve_custom_record/2 and https://babe-demo.herokuapp.com/api/retrieve_custom_record/3.
 
-+ `images`       - images shown in this experiment; optional; user usually supplies these
+    The relevant code can be found in `experiment.js`
+    ```javascript
+    const practice_trial_promise = fetch('https://babe-demo.herokuapp.com/api/retrieve_custom_record/2');
+    const main_trial_promise = fetch('https://babe-demo.herokuapp.com/api/retrieve_custom_record/3');
 
-+ `styles/styles.css`  - style files
+    Promise
+        .all([practice_trial_promise, main_trial_promise])
+        .then((responses) => Promise.all(responses.map((res) => res.json())))
+        .then(([practice_trials, main_trials]) => {
+            this.trial_info.practice_trials = practice_trials;
+            // randomize main trial order, but keep practice trial order fixed
+            this.trial_info.main_trials = _.shuffle(main_trials.concat(practice_trials));
+        })
+    ```
 
-+ `libraries`    - external libraries
+### Dynamically retrieve previous experiment results
 
-+ README.md
-+ LICENSE
+The server allows dynamically retrieving previous results of an experiment. This can be helpful when information from previous cases is needed to generate new trials.
 
-## What the user will usually (not) edit
+- First, [on the server interface for managing this experiment](https://babe-demo.herokuapp.com/experiments/3/edit), one needs to specify the keys that are to be retrieved. In this case, keys `trial_type` and `option_chosen` are specified.
+- The data can then be retrieved in JSON format from the API endpoint: https://babe-demo.herokuapp.com/api/retrieve_experiment/3.
 
-The main files which must (usually) be edited to program an experiment are: 
+    ```js
+    const prevTrialInfoPromise = fetch('https://babe-demo.herokuapp.com/api/retrieve_experiment/3');
+    prevTrialInfoPromise
+      .then((dataLoad) => dataLoad.json())
+      .then(json => console.log(json))
+    ```
 
-+ `index.html`    - provide view-templates
-
-+ `views/view.js` - define how individual trials look, which data to collect etc.
-
-+ `scripts/experiment.js`   - define structure of the experiment (order of blocks, number of trials etc.)
-
-+ `config/config_deploy.js` - just choose one of several options regarding what to do with the collected data
-
-
-## Views & trials
-
-A usual experiment consists of a sequence of separable parts, such as instructions, practice trials, main trials etc. These parts are called **views** in _babe, because they correspond loosely to what is visible on the screen. The user can specify any order of views, including repetitions, (this is done in `experiment.js`; see below) and any number of times (=trials) each view should be repeated.
-
-Views are defined in `views/views.js`. Formally a view is an object. It should minimally contain the following keys: 
-
-+ `trials` - a number specifying the number of trials the view should be repeated
-
-+ `render` - a function which updates a view-template, defines how to react to which events and possibly records data
-
-For example, the `intro` view of the minimal template looks like this:
-
-```javascript
-var intro = {
-    // introduction title
-    "title": "Welcome!",
-             // introduction text
-             "text": "Thank you for participating in our study. In this study, you will ...",
-             // introduction's slide proceeding button text
-             "buttonText": "Begin experiment",
-             // render function renders the view
-             render: function() {
-    var view = {};
-                                 view.name = 'intro';
-                                 view.template = $('#intro-view').html();
-                                 $('#main').html(Mustache.render(view.template, {
-    title: this.title,
-                                                                                 text: this.text,
-                                                                                 button: this.buttonText
-                                                                                }));
-
-                                 // moves to the next view
-                                 $('#next').on('click', function(e) {
-    exp.findNextView();
-                                                                    });
-
-                                 return view;
-                                },
-             // for how many trials should this view be repeated?
-             trials: 1
-            }
-```
-
-## Experiment
-
-The experiment itself is realized as a Javascript object. It contains four keys that are particularly important for customizing your experiment:
-
-+ `views` - array of view-objects in the order in which they are to occur
-
-+ `trial_info` - any information the user may wish to specify to realize particular trials (e.g., URLs to pictures, test sentences, ...)
-
-+ `trial_data` - data gathered from each particular trial (this is the main experimental data you collect)
-
-+ `global_data` - data that is collected only once, such as MTurk userID, starting time, total experiment time etc.
-
-The sequence of views is defined in `scripts/experiment.js`, for example like so:
-
-``` javascript
-// specify view order
-this.views = [intro,
-              instructionsForcedChoice,
-              practiceForcedChoice,
-              beginForcedChoice,
-              mainForcedChoice,
-              instructionsSliderRating,
-              mainSliderRating,
-              postTest,
-              thanks];
-```
-
-
-## Configuration of deployment
-
-The deploy configuration file `config_deploy.js` contains **information about how to deploy** (i.e., run, recruit participants & store data) an experiment. Here, we simply use the `debug` mode in which the experiment runs locally in our own browser and outputs the data collected on the last slides as one huge and unstructured blob of text. Other modes of deployment are possible.
+The function `showPreviousExperimentResults` in `main.js` retrieves all experiment results up to now, calculates the number of times each response was chosen, and displays them in a table after the current experiment is finished.

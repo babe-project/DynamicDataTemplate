@@ -237,11 +237,9 @@ exp.submit = function () {
 
     // Example of retrieving data from previous experiments.
     var showPreviousExperimentResults = function () {
-        // Get a statistics about option_chosen from trial_type==mainForceChoice from previous experiments
+        // Get statistics about option_chosen from trial_type==mainForceChoice from previous experiments
         const prevTrialInfoPromise = fetch('https://babe-demo.herokuapp.com/api/retrieve_experiment/3');
-        // console.log(prevChoices);
         var formatPrevResults = function (prevResults) {
-            console.log(prevResults);
             var output = "<table id = 'prevresults' class = 'resultstable'>";
             output += "<thead><tr><th>Choice</th><th>Count</th></tr></thead>";
             output += "<tbody>";
