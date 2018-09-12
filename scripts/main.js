@@ -115,7 +115,7 @@ exp.submit = function () {
     };
 
     var formatDebugData = function (data) {
-        var output = "<table id = 'debugresults'>";
+        var output = "<table id = 'debugresults' class = 'resultstable'>";
 
         var trials = data.trials;
         delete data.trials;
@@ -247,6 +247,7 @@ exp.submit = function () {
         // hides the 'Please do not close the tab.. ' message in debug mode
         console.log(data);
         $('.warning-message').addClass('nodisplay');
+        
         jQuery('<h3/>', {
             text: 'Debug Mode'
         }).appendTo($('.view'));
@@ -254,6 +255,52 @@ exp.submit = function () {
             class: 'debug-results',
             html: formatDebugData(data)
         }).appendTo($('.view'));
+
+        // Get a statistics about option_chosen from trial_type==mainForceChoice from previous experiments
+        const prevTrialInfoPromise = fetch('https://babe-demo.herokuapp.com/api/retrieve_experiment/3');
+        // console.log(prevChoices);
+        var formatPrevResults = function (prevResults) {
+            console.log(prevResults);
+            var output = "<table id = 'prevresults' class = 'resultstable'>";
+            output += "<thead><tr><th>Choice</th><th>Count</th></tr></thead>";
+            output += "<tbody>";
+            Object.entries(prevResults).forEach(([choice, count]) => {
+                output += "<tr>";
+                output += `<td>${choice}</td>`;
+                output += `<td>${count}</td>`;
+                output += "</tr>";
+            });
+            output += "</tbody></table>";
+            return output;
+        }
+        prevTrialInfoPromise
+            .then((dataLoad) => {
+                return dataLoad.json();
+            })
+            .then((prevResponses) => {
+                const prevChoices = {};
+                // Each experiment
+                for (const experiment of prevResponses) {
+                    // Each trial in this experiment
+                    for (const trial of experiment) {
+                        const trial_type = trial.trial_type;
+                        if (trial_type === "mainForcedChoice") {
+                            const thisChoice = trial.option_chosen;
+                            prevChoices[thisChoice]? prevChoices[thisChoice] += 1: prevChoices[thisChoice] = 1;
+                        }
+                    }
+                }
+                return prevChoices;
+            })
+            .then((prevChoices) => {
+                jQuery('<h3/>', {
+                    text: 'Previous Experiment Results'
+                }).appendTo($('.view'));
+                jQuery('<div/>', {
+                    class: 'prev-results',
+                    html: formatPrevResults(prevChoices)
+                }).appendTo($('.view'));
+            });
     }
 };
 
