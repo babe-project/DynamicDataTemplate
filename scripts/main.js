@@ -235,27 +235,8 @@ exp.submit = function () {
     // this could be unsafe if 'exp.global_data' contains keys used in 'data'!!
     data = _.merge(exp.global_data, data);
 
-    // if the experiment is set to live (see config.js liveExperiment)
-    // the results are sent to the server
-    // if it is set to false
-    // the results are displayed on the thanks slide
-    if (config_deploy.liveExperiment) {
-        console.log('submits');
-        //submitResults(config_deploy.contact_email, config_deploy.submissionURL, data);
-        submitResults(config_deploy.contact_email, config_deploy.submissionURL, flattenData(data));
-    } else {
-        // hides the 'Please do not close the tab.. ' message in debug mode
-        console.log(data);
-        $('.warning-message').addClass('nodisplay');
-        
-        jQuery('<h3/>', {
-            text: 'Debug Mode'
-        }).appendTo($('.view'));
-        jQuery('<div/>', {
-            class: 'debug-results',
-            html: formatDebugData(data)
-        }).appendTo($('.view'));
-
+    // Example of retrieving data from previous experiments.
+    var showPreviousExperimentResults = function () {
         // Get a statistics about option_chosen from trial_type==mainForceChoice from previous experiments
         const prevTrialInfoPromise = fetch('https://babe-demo.herokuapp.com/api/retrieve_experiment/3');
         // console.log(prevChoices);
@@ -301,6 +282,30 @@ exp.submit = function () {
                     html: formatPrevResults(prevChoices)
                 }).appendTo($('.view'));
             });
+    }
+
+    // if the experiment is set to live (see config.js liveExperiment)
+    // the results are sent to the server
+    // if it is set to false
+    // the results are displayed on the thanks slide
+    if (config_deploy.liveExperiment) {
+        console.log('submits');
+        //submitResults(config_deploy.contact_email, config_deploy.submissionURL, data);
+        showPreviousExperimentResults();
+        submitResults(config_deploy.contact_email, config_deploy.submissionURL, flattenData(data));
+    } else {
+        // hides the 'Please do not close the tab.. ' message in debug mode
+        console.log(data);
+        $('.warning-message').addClass('nodisplay');
+        
+        jQuery('<h3/>', {
+            text: 'Debug Mode'
+        }).appendTo($('.view'));
+        jQuery('<div/>', {
+            class: 'debug-results',
+            html: formatDebugData(data)
+        }).appendTo($('.view'));
+        showPreviousExperimentResults();
     }
 };
 
