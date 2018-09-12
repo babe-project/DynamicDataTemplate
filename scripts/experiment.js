@@ -20,8 +20,8 @@ exp.customize = function () {
 
     // prepare information about trials (procedure)
     // Use ES6 Promise
-    var practice_trial_promise = fetch('https://babe-demo.herokuapp.com/api/retrieve_custom_record/2');
-    var main_trial_promise = fetch('https://babe-demo.herokuapp.com/api/retrieve_custom_record/3');
+    const practice_trial_promise = fetch('https://babe-demo.herokuapp.com/api/retrieve_custom_record/2');
+    const main_trial_promise = fetch('https://babe-demo.herokuapp.com/api/retrieve_custom_record/3');
 
     Promise
         .all([practice_trial_promise, main_trial_promise])
